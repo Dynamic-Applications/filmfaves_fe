@@ -36,3 +36,72 @@
     transform: rotate(360deg);
   }
 }
+
+
+
+.Title {
+  text-align: center;
+}
+
+.img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  justify-items: center;
+  margin: 20px;
+  display:flex;
+  flex-flow: column nowrap; 
+  flex-direction: row;
+  
+  flex-flow: row wrap;
+  justify-content: flex-start;
+}
+
+.Sign {
+  display: flex;
+  text-align: right;
+}
+
+.App {
+  font-family: 'Roboto', sans-serif;
+  text-align: right;
+  padding-bottom: 36px;
+}
+
+.card2 {
+  display: flex;
+  flex-wrap:wrap;
+  justify-content: center;
+}
+
+.container {
+  padding: 16px;
+}
+
+
+img {
+  display: inline-block;
+  max-height: 300px;
+}
+
+.movie-title {
+  clear: both;
+  display: inline-block; 
+  overflow: hidden;
+  white-space: nowrap;
+  flex-shrink: 200;
+  /* border: solid; */
+  margin-right: 100px;
+}
+
+.center-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
