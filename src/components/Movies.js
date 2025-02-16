@@ -28,7 +28,7 @@ export default function Movies() {
     });
 
     useEffect(() => {
-        axios(`${API_URL}/movies`)
+        axios(`${API_URL}/movies` || "http://localhost:4000/movies")
             .then((response) => {
                 const movieData = Array.isArray(response.data)
                     ? response.data
@@ -56,7 +56,7 @@ export default function Movies() {
 
     const handleDelete = (id) => {
         axios
-            .delete(`${API_URL}/movies/${id}`)
+            .delete(`${API_URL}/movies/${id}` || `http://localhost:4000/movies/${id}`)
             .then(() => {
                 setMovies(movies.filter((movie) => movie.movie_id !== id));
             })
@@ -65,7 +65,11 @@ export default function Movies() {
 
     const handleUpdate = (id, updatedMovie) => {
         axios
-            .put(`${API_URL}/movies/${id}`, updatedMovie)
+            .put(
+                `${API_URL}/movies/${id}` ||
+                    `http://localhost:4000/movies/${id}`,
+                updatedMovie
+            )
             .then((response) => {
                 setMovies(
                     movies.map((movie) =>
@@ -100,7 +104,10 @@ export default function Movies() {
 
     const handleAddMovie = () => {
         axios
-            .post(`${API_URL}/movies`, newMovie)
+            .post(
+                `${API_URL}/movies` || "http://localhost:4000/movies",
+                newMovie
+            )
             .then((response) => {
                 setMovies([...movies, response.data]);
                 setAddDialogOpen(false);
