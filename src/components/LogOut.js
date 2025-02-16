@@ -5,7 +5,7 @@ const API_URL = process.env.REACT_APP_FILMFAVES_API;
 
 export const handleLogout = async (setIsLoggedIn, navigate) => {
     try {
-        const response = await fetch(`${API_URL}/auth/logout`, {
+        const response = await fetch(`${API_URL}/auth/logout` || "http://localhost:4000/auth/logout", {
             method: "GET",
             credentials: "include", // Include cookies in the request
         });

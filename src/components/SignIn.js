@@ -20,13 +20,16 @@ export default function SignIn() {
         setError(null);
 
         try {
-            const response = await fetch(`${API_URL}/auth/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ username, password }),
-            });
+            const response = await fetch(
+                `${API_URL}/auth/login` || "http://localhost:4000/auth/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ username, password }),
+                }
+            );
 
             const data = await response.json();
 
