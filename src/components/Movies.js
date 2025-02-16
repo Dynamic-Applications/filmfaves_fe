@@ -9,6 +9,7 @@ import CardActions from "@mui/material/CardActions";
 import Rating from "@mui/material/Rating";
 import AddMovie from "./AddMovie";
 import EditMovie from "./EditMovie";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = process.env.REACT_APP_FILMFAVES_API;
 
@@ -26,10 +27,25 @@ export default function Movies() {
         rate: 0,
         image: "",
     });
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        axios(`${API_URL}/movies` || "http://localhost:4000/movies")
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            navigate("/SignIn");
+            return;
+        }
+
+        axios
+            .get(`${API_URL}/movies` || "http://localhost:4000/movies", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
             .then((response) => {
+                console.log("Movies fetched:", response.data);
                 const movieData = Array.isArray(response.data)
                     ? response.data
                     : [];
@@ -43,9 +59,9 @@ export default function Movies() {
             })
             .catch((error) => {
                 console.error("Error fetching movies:", error);
-                setMovies([]);
+                setError("Failed to load movies. Please try again later.");
             });
-    }, []);
+    }, [navigate]);
 
     const toggleDescription = (id) => {
         setDescriptionVisibility((prev) => ({
@@ -55,8 +71,18 @@ export default function Movies() {
     };
 
     const handleDelete = (id) => {
+        const token = localStorage.getItem("token");
+
         axios
-            .delete(`${API_URL}/movies/${id}` || `http://localhost:4000/movies/${id}`)
+            .delete(
+                `${API_URL}/movies/${id}` ||
+                    `http://localhost:4000/movies/${id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            )
             .then(() => {
                 setMovies(movies.filter((movie) => movie.movie_id !== id));
             })
@@ -64,11 +90,18 @@ export default function Movies() {
     };
 
     const handleUpdate = (id, updatedMovie) => {
+        const token = localStorage.getItem("token");
+
         axios
             .put(
                 `${API_URL}/movies/${id}` ||
                     `http://localhost:4000/movies/${id}`,
-                updatedMovie
+                updatedMovie,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             )
             .then((response) => {
                 setMovies(
@@ -103,10 +136,17 @@ export default function Movies() {
     };
 
     const handleAddMovie = () => {
+        const token = localStorage.getItem("token");
+
         axios
             .post(
                 `${API_URL}/movies` || "http://localhost:4000/movies",
-                newMovie
+                newMovie,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             )
             .then((response) => {
                 setMovies([...movies, response.data]);
@@ -122,6 +162,10 @@ export default function Movies() {
             })
             .catch((error) => console.error(error));
     };
+
+    if (error) {
+        return <Typography color="error">{error}</Typography>;
+    }
 
     return (
         <div className="center-container">

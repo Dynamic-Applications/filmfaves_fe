@@ -46,7 +46,7 @@ export default function SignUp() {
             if (response.ok) {
                 setSuccess(result.message);
                 setTimeout(() => {
-                    navigate("/SignIn"); // Redirect to Sign In page
+                    navigate("/signin"); // Redirect to Sign In page
                 }, 2000);
             } else {
                 setError(result.message);
@@ -133,7 +133,7 @@ export default function SignUp() {
                                             "-1px 1px 10px rgba(255,255,255)",
                                         fontWeight: "bold",
                                     }}
-                                    to="/SignIn"
+                                    to="/signin"
                                 >
                                     Sign In
                                 </Link>

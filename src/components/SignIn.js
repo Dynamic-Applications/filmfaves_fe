@@ -40,7 +40,7 @@ export default function SignIn() {
             // Save the token and redirect
             localStorage.setItem("token", data.token);
             alert(data.message);
-            navigate("/home");
+            navigate("/");
         } catch (err) {
             setError(err.message);
         } finally {
@@ -133,7 +133,7 @@ export default function SignIn() {
                                             "-1px 1px 10px rgba(255,255,255)",
                                         fontWeight: "bold",
                                     }}
-                                    to="/SignUp"
+                                    to="/signup"
                                 >
                                     Create an account
                                 </Link>
