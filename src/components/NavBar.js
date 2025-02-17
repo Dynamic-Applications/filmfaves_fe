@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 const handleLogout = (setIsLoggedIn, navigate) => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
-    navigate("/SignIn");
+    navigate("/signin");
 };
 
 export default function NavBar() {
@@ -42,7 +42,7 @@ export default function NavBar() {
                     ) : (
                         <Button color="inherit">
                             <Link
-                                to="/SignIn"
+                                to="/signin"
                                 style={{
                                     textDecoration: "none",
                                     color: "white",
