@@ -34,7 +34,7 @@ export default function Movies() {
         const token = localStorage.getItem("token");
 
         if (!token) {
-            navigate("/SignIn");
+            navigate("/signin");
             return;
         }
 

@@ -40,7 +40,8 @@ export default function SignIn() {
             // Save the token and redirect
             localStorage.setItem("token", data.token);
             alert(data.message);
-            navigate("/");
+            navigate("/movies");
+            window.location.reload();
         } catch (err) {
             setError(err.message);
         } finally {
