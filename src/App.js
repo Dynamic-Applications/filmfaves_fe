@@ -1,25 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+// import Main from "./components/homepage/Main";
+import Home from "./components/Home";
+import Movies from "./components/Movies";
+import SignIn from "./components/SignIn";
+import SignUp from "./components/SignUp";
+import NavBar from "./components/navebar/NavBar";
+import RequireAuth from "./components/Auth"; // Auth wrapper component
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <Router>
+            <NavBar />
+            <div className="App">
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/signin" element={<SignIn />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/passresets" element={<ForgotPassword />} />
+                    <Route
+                        path="/reset-password/:token"
+                        element={<ResetPassword />}
+                    />
+                    {/* Protect the Movies route */}
+                    <Route
+                        path="/movies"
+                        element={
+                            <RequireAuth>
+                                <Movies />
+                            </RequireAuth>
+                        }
+                    />
+                    {/* Default redirect or homepage */}
+                    <Route path="/" element={<SignIn />} />
+                </Routes>
+            </div>
+        </Router>
+    );
 }
 
 export default App;
