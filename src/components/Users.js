@@ -1,20 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    Button,
     CircularProgress,
     Typography,
-    TextField,
     Card,
     CardContent,
     Container,
     List,
     ListItem,
     Paper,
-    MenuItem,
-    Select,
-    FormControl,
-    InputLabel,
+    FormControlLabel,
+    Checkbox,
     IconButton,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
@@ -26,12 +22,6 @@ const API_URL = process.env.REACT_APP_FILMFAVES_API || "http://localhost:4000";
 export default function Users() {
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
-    const [newUser, setNewUser] = useState({
-        username: "",
-        email: "",
-        password: "",
-        roles: [],
-    });
     const [editingUserId, setEditingUserId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -60,12 +50,23 @@ export default function Users() {
                 const usersData = await usersResponse.json();
                 const rolesData = await rolesResponse.json();
 
-                // Ensure rolesData is an array of role strings
+                console.log("Users Data", usersData);
+                console.log("Roles Data", rolesData);
+
                 if (Array.isArray(rolesData)) {
-                    setRoles(rolesData); // Set roles
+                    setRoles(rolesData);
                 }
 
-                setUsers(Array.isArray(usersData) ? usersData : []);
+                setUsers(
+                    Array.isArray(usersData)
+                        ? usersData.map((user) => ({
+                              ...user,
+                              roles: Array.isArray(user.roles)
+                                  ? user.roles
+                                  : [],
+                          }))
+                        : []
+                );
             } catch (error) {
                 console.error("Error fetching data", error);
                 setUsers([]);
@@ -77,46 +78,51 @@ export default function Users() {
         fetchData();
     }, [navigate]);
 
-    const handleAddUser = async () => {
+    const handleRoleChange = async (userId, role, checked) => {
         const token = localStorage.getItem("token");
 
         try {
-            const response = await axios.post(`${API_URL}/users`, newUser, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            if (checked) {
+                // Assign role
+                await axios.put(
+                    `${API_URL}/users/${userId}/assign-role`,
+                    { userId, roleId: role.id },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+            } else {
+                // Ensure `roles` is always an array
+                await axios.put(
+                    `${API_URL}/users/${userId}/remove-roles`,
+                    { userId, roles: [role.role_name] }, // Ensure this is an array
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+            }
 
-            setUsers((prevUsers) => [...prevUsers, response.data]);
-            setNewUser({ username: "", email: "", password: "", roles: [] });
-        } catch (error) {
-            console.error("Error adding user", error);
-            setError(error.message || "Failed to add user.");
-        }
-    };
-
-    const handleRoleChange = (userId, newRoles) => {
-        setUsers((prevUsers) =>
-            prevUsers.map((user) =>
-                user.id === userId ? { ...user, roles: newRoles } : user
-            )
-        );
-    };
-
-    const saveRoleUpdate = async (userId) => {
-        const token = localStorage.getItem("token");
-        const userToUpdate = users.find((user) => user.id === userId);
-
-        try {
-            await axios.put(
-                `${API_URL}/users/${userId}`,
-                { roles: userToUpdate.roles },
-                { headers: { Authorization: `Bearer ${token}` } }
+            // Update local state
+            setUsers((prevUsers) =>
+                prevUsers.map((user) =>
+                    user.id === userId
+                        ? {
+                              ...user,
+                              roles: checked
+                                  ? [...user.roles, role.role_name]
+                                  : user.roles.filter(
+                                        (r) => r !== role.role_name
+                                    ),
+                          }
+                        : user
+                )
             );
-            setEditingUserId(null); // Exit edit mode
         } catch (error) {
-            console.error("Error updating role", error);
-            setError("Failed to update role.");
+            console.error(
+                "Error updating role",
+                error.response?.data || error.message
+            );
+            setError(error.response?.data?.message || "Failed to update role.");
         }
     };
+
+
 
     return (
         <Container maxWidth="md" style={{ marginTop: "20px" }}>
@@ -158,50 +164,58 @@ export default function Users() {
                                             </Typography>
 
                                             {editingUserId === user.id ? (
-                                                <FormControl fullWidth>
-                                                    <InputLabel>
-                                                        Role
-                                                    </InputLabel>
-                                                    <Select
-                                                        multiple
-                                                        value={user.roles || []}
-                                                        onChange={(e) =>
-                                                            handleRoleChange(
-                                                                user.id,
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    >
-                                                        {roles.length > 0 ? (
-                                                            roles.map(
-                                                                (role) => (
-                                                                    <MenuItem
-                                                                        key={
-                                                                            role
-                                                                        }
-                                                                        value={
-                                                                            role
-                                                                        }
-                                                                    >
-                                                                        {role}
-                                                                    </MenuItem>
-                                                                )
-                                                            )
-                                                        ) : (
-                                                            <MenuItem value="">
-                                                                No Roles
-                                                                Available
-                                                            </MenuItem>
-                                                        )}
-                                                    </Select>
-                                                </FormControl>
+                                                <>
+                                                    <Typography variant="body1">
+                                                        Select Roles:
+                                                    </Typography>
+                                                    {roles.length > 0 ? (
+                                                        roles.map((role) => (
+                                                            <div key={role.id}>
+                                                                <FormControlLabel
+                                                                    control={
+                                                                        <Checkbox
+                                                                            checked={user.roles.includes(
+                                                                                role.role_name
+                                                                            )}
+                                                                            onChange={(
+                                                                                e
+                                                                            ) =>
+                                                                                handleRoleChange(
+                                                                                    user.id,
+                                                                                    role,
+                                                                                    e
+                                                                                        .target
+                                                                                        .checked
+                                                                                )
+                                                                            }
+                                                                            name={
+                                                                                role.role_name ||
+                                                                                `role-${role.id}`
+                                                                            }
+                                                                            color="primary"
+                                                                        />
+                                                                    }
+                                                                    label={
+                                                                        role.role_name
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <Typography>
+                                                            No roles available.
+                                                        </Typography>
+                                                    )}
+                                                </>
                                             ) : (
                                                 <Typography variant="body2">
-                                                    Role:{" "}
+                                                    Roles:{" "}
                                                     <strong>
-                                                        {user.roles.join(
-                                                            ", "
-                                                        ) || "No Role Assigned"}
+                                                        {user.roles.length > 0
+                                                            ? user.roles.join(
+                                                                  ", "
+                                                              )
+                                                            : "No Roles Assigned"}
                                                     </strong>
                                                 </Typography>
                                             )}
@@ -216,7 +230,7 @@ export default function Users() {
                                                 <IconButton
                                                     color="primary"
                                                     onClick={() =>
-                                                        saveRoleUpdate(user.id)
+                                                        setEditingUserId(null)
                                                     }
                                                 >
                                                     <SaveIcon />
@@ -245,86 +259,6 @@ export default function Users() {
                     </List>
                 </Paper>
             )}
-
-            <Typography variant="h5" style={{ marginTop: "30px" }}>
-                Add a New User
-            </Typography>
-
-            <Paper
-                elevation={3}
-                style={{
-                    padding: "20px",
-                    marginTop: "15px",
-                    borderRadius: "10px",
-                }}
-            >
-                <TextField
-                    fullWidth
-                    label="Username"
-                    variant="outlined"
-                    value={newUser.username}
-                    onChange={(e) =>
-                        setNewUser({ ...newUser, username: e.target.value })
-                    }
-                    margin="normal"
-                />
-                <TextField
-                    fullWidth
-                    label="Email"
-                    variant="outlined"
-                    type="email"
-                    value={newUser.email}
-                    onChange={(e) =>
-                        setNewUser({ ...newUser, email: e.target.value })
-                    }
-                    margin="normal"
-                />
-                <TextField
-                    fullWidth
-                    label="Password"
-                    variant="outlined"
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) =>
-                        setNewUser({ ...newUser, password: e.target.value })
-                    }
-                    margin="normal"
-                />
-
-                <FormControl fullWidth margin="normal">
-                    <InputLabel>Role</InputLabel>
-                    <Select
-                        multiple
-                        value={newUser.roles}
-                        onChange={(e) =>
-                            setNewUser({
-                                ...newUser,
-                                roles: e.target.value,
-                            })
-                        }
-                    >
-                        {roles.length > 0 ? (
-                            roles.map((role) => (
-                                <MenuItem key={role} value={role}>
-                                    {role}
-                                </MenuItem>
-                            ))
-                        ) : (
-                            <MenuItem value="">No Roles Available</MenuItem>
-                        )}
-                    </Select>
-                </FormControl>
-
-                <Button
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                    style={{ marginTop: "10px" }}
-                    onClick={handleAddUser}
-                >
-                    Add User
-                </Button>
-            </Paper>
         </Container>
     );
 }
