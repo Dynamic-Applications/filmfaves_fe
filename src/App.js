@@ -9,6 +9,7 @@ import NavBar from "./components/navebar/NavBar";
 import RequireAuth from "./components/Auth"; // Auth wrapper component
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
+import Users from "./components/Users";
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
                     <Route path="/signin" element={<SignIn />} />
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/passresets" element={<ForgotPassword />} />
+                    <Route path="/users" element={<Users />} />
                     <Route
                         path="/reset-password/:token"
                         element={<ResetPassword />}
