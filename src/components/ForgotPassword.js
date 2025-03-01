@@ -19,11 +19,15 @@ export default function ForgotPassword() {
         setSuccessMessage(null);
 
         try {
-            const response = await fetch(`${API_URL}/passresets`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-            });
+            const response = await fetch(
+                `${API_URL}/passresets` ||
+                "http://localhost:4000/passresets",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email }),
+                }
+            );
 
             const data = await response.json();
 
