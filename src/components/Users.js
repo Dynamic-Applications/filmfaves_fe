@@ -16,6 +16,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import axios from "axios";
+import "./Sign-In-Up.css";
 
 const API_URL = process.env.REACT_APP_FILMFAVES_API || "http://localhost:4000";
 
@@ -54,7 +55,7 @@ export default function Users() {
                 console.log("Roles Data", rolesData);
 
                 if (Array.isArray(rolesData)) {
-                    setRoles(rolesData);
+                    setRoles(rolesData); // Now rolesData should be an array of strings like ['admin', 'user', 'guest', 'superAdmin']
                 }
 
                 setUsers(
@@ -78,49 +79,76 @@ export default function Users() {
         fetchData();
     }, [navigate]);
 
-    const handleRoleChange = async (userId, role, checked) => {
-        const token = localStorage.getItem("token");
+const handleRoleChange = async (userId, role, checked) => {
+    const token = localStorage.getItem("token");
 
-        try {
-            if (checked) {
-                // Assign role
-                await axios.put(
-                    `${API_URL}/users/${userId}/assign-role`,
-                    { userId, roleId: role.id },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-            } else {
-                // Ensure `roles` is always an array
-                await axios.put(
-                    `${API_URL}/users/${userId}/remove-roles`,
-                    { userId, roles: [role.role_name] }, // Ensure this is an array
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-            }
+    // Log the role object to ensure correct data structure
+    console.log("Role Object:", role);
 
-            // Update local state
-            setUsers((prevUsers) =>
-                prevUsers.map((user) =>
-                    user.id === userId
-                        ? {
-                              ...user,
-                              roles: checked
-                                  ? [...user.roles, role.role_name]
-                                  : user.roles.filter(
-                                        (r) => r !== role.role_name
-                                    ),
-                          }
-                        : user
-                )
-            );
-        } catch (error) {
-            console.error(
-                "Error updating role",
-                error.response?.data || error.message
-            );
-            setError(error.response?.data?.message || "Failed to update role.");
+    let roleId;
+
+    // Check if the role is an object and contains the 'id' property
+    if (role && role.id) {
+        roleId = role.id; // Use the id directly if the role is an object
+    } else if (typeof role === "string") {
+        // If role is a string, find the role object from the available roles and get the id
+        const roleObj = roles.find((r) => r.role_name === role);
+        if (roleObj) {
+            roleId = roleObj.id;
+        } else {
+            console.error("Role not found in roles list:", role);
+            return; // Exit if roleName is not found in the roles list
         }
-    };
+    }
+
+    // If roleId is still undefined or null, log an error and exit
+    if (!roleId) {
+        console.error("Role ID is missing for role:", role);
+        return;
+    }
+
+    try {
+        if (checked) {
+            // Assign role
+            console.log("Assigning role with ID:", roleId);
+            await axios.put(
+                `${API_URL}/users/${userId}/assign-role`,
+                { userId, roleId }, // Send roleId for assigning
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+        } else {
+            // Unassign role
+            console.log("Unassigning role with Name:", role);
+            await axios.put(
+                `${API_URL}/users/${userId}/unassign-role`,
+                { userId, roleName: role }, // Send roleName for unassigning
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+        }
+
+        // Update local state after role change
+        setUsers((prevUsers) =>
+            prevUsers.map((user) =>
+                user.id === userId
+                    ? {
+                          ...user,
+                          roles: checked
+                              ? [...user.roles, roleId]
+                              : user.roles.filter((r) => r !== roleId),
+                      }
+                    : user
+            )
+        );
+    } catch (error) {
+        console.error(
+            "Error updating role:",
+            error.response?.data || error.message
+        );
+        setError(error.response?.data?.message || "Failed to update role.");
+    }
+};
+
+
 
 
 
@@ -141,7 +169,7 @@ export default function Users() {
                     elevation={3}
                     style={{ padding: "20px", borderRadius: "10px" }}
                 >
-                    <Typography variant="h5" gutterBottom>
+                    <Typography variant="h5" gutterBottom align="left">
                         Users List
                     </Typography>
                     <List>
@@ -170,36 +198,30 @@ export default function Users() {
                                                     </Typography>
                                                     {roles.length > 0 ? (
                                                         roles.map((role) => (
-                                                            <div key={role.id}>
-                                                                <FormControlLabel
-                                                                    control={
-                                                                        <Checkbox
-                                                                            checked={user.roles.includes(
-                                                                                role.role_name
-                                                                            )}
-                                                                            onChange={(
+                                                            <FormControlLabel
+                                                                key={role}
+                                                                control={
+                                                                    <Checkbox
+                                                                        checked={user.roles.includes(
+                                                                            role
+                                                                        )}
+                                                                        onChange={(
+                                                                            e
+                                                                        ) =>
+                                                                            handleRoleChange(
+                                                                                user.id,
+                                                                                role,
                                                                                 e
-                                                                            ) =>
-                                                                                handleRoleChange(
-                                                                                    user.id,
-                                                                                    role,
-                                                                                    e
-                                                                                        .target
-                                                                                        .checked
-                                                                                )
-                                                                            }
-                                                                            name={
-                                                                                role.role_name ||
-                                                                                `role-${role.id}`
-                                                                            }
-                                                                            color="primary"
-                                                                        />
-                                                                    }
-                                                                    label={
-                                                                        role.role_name
-                                                                    }
-                                                                />
-                                                            </div>
+                                                                                    .target
+                                                                                    .checked
+                                                                            )
+                                                                        }
+                                                                        name={`role-${role}`}
+                                                                        color="primary"
+                                                                    />
+                                                                }
+                                                                label={role}
+                                                            />
                                                         ))
                                                     ) : (
                                                         <Typography>
@@ -220,12 +242,7 @@ export default function Users() {
                                                 </Typography>
                                             )}
                                         </CardContent>
-                                        <div
-                                            style={{
-                                                padding: "10px",
-                                                textAlign: "right",
-                                            }}
-                                        >
+                                        <div style={{ textAlign: "right" }}>
                                             {editingUserId === user.id ? (
                                                 <IconButton
                                                     color="primary"
