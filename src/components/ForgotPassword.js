@@ -3,8 +3,7 @@ import { Button, CircularProgress } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import "./Sign-In-Up.css";
 
-const API_URL =
-    process.env.REACT_APP_FILMFAVES_API || "http://localhost:4000";
+const API_URL = process.env.REACT_APP_FILMFAVES_API;
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState("");
@@ -20,14 +19,11 @@ export default function ForgotPassword() {
         setSuccessMessage(null);
 
         try {
-            const response = await fetch(
-                `${API_URL}/passresets`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email }),
-                }
-            );
+            const response = await fetch(`${API_URL}/passresets`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+            });
 
             const data = await response.json();
 

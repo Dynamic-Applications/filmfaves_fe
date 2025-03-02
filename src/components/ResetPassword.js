@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button, CircularProgress } from "@mui/material";
 import "./Sign-In-Up.css";
 
-const API_URL = process.env.REACT_APP_FILMFAVES_API || "http://localhost:4000";
+const API_URL = process.env.REACT_APP_FILMFAVES_API;
 
 export default function ResetPassword() {
     const { token } = useParams(); // Get the token from the URL params
@@ -33,29 +33,29 @@ export default function ResetPassword() {
         }
 
         try {
-            console.log("Sending request to:", `${API_URL}/reset-password`);
-            const response = await fetch(`${API_URL}/reset-password`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    resetToken: token,
-                    newPassword: password,
-                }),
-            });
+            const response = await fetch(
+                `${API_URL}/passresets/reset-password`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        resetToken: token,
+                        newPassword: password,
+                    }),
+                }
+            );
 
             const data = await response.json();
-            console.log("Response data:", data);
 
             if (!response.ok) {
                 throw new Error(data.message || "Failed to reset password.");
             }
 
             setSuccessMessage(
-                "Password reset successful. Redirecting to sign-in..."
+                "Password reset successful. You can now sign in."
             );
-            setTimeout(() => navigate("/signin"), 3000); // Redirect after 3 seconds
+            setTimeout(() => navigate("/signin"), 3000); // Redirect to sign-in after 3 seconds
         } catch (err) {
-            console.error("Error resetting password:", err);
             setError(err.message);
         } finally {
             setLoading(false);
