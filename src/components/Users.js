@@ -55,7 +55,7 @@ export default function Users() {
                 console.log("Roles Data", rolesData);
 
                 if (Array.isArray(rolesData)) {
-                    setRoles(rolesData);
+                    setRoles(rolesData); // Now rolesData should be an array of strings like ['admin', 'user', 'guest', 'superAdmin']
                 }
 
                 setUsers(
@@ -79,61 +79,74 @@ export default function Users() {
         fetchData();
     }, [navigate]);
 
-    const handleRoleChange = async (userId, role, checked) => {
-        const token = localStorage.getItem("token");
+const handleRoleChange = async (userId, role, checked) => {
+    const token = localStorage.getItem("token");
 
-        // Log the role for debugging purposes
-        console.log("Role object:", role);
+    // Log the role object to ensure correct data structure
+    console.log("Role Object:", role);
 
-        // Check if role.id exists
-        const roleId = role.id || role.role_name; // Use role.id if available, otherwise fallback to role_name
+    let roleId;
 
-        if (!roleId) {
-            console.error("Role ID or Role Name is missing");
-            return;
+    // Check if the role is an object and contains the 'id' property
+    if (role && role.id) {
+        roleId = role.id; // Use the id directly if the role is an object
+    } else if (typeof role === "string") {
+        // If role is a string, find the role object from the available roles and get the id
+        const roleObj = roles.find((r) => r.role_name === role);
+        if (roleObj) {
+            roleId = roleObj.id;
+        } else {
+            console.error("Role not found in roles list:", role);
+            return; // Exit if roleName is not found in the roles list
+        }
+    }
+
+    // If roleId is still undefined or null, log an error and exit
+    if (!roleId) {
+        console.error("Role ID is missing for role:", role);
+        return;
+    }
+
+    try {
+        if (checked) {
+            // Assign role
+            console.log("Assigning role with ID:", roleId);
+            await axios.put(
+                `${API_URL}/users/${userId}/assign-role`,
+                { userId, roleId }, // Send roleId for assigning
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+        } else {
+            // Unassign role
+            console.log("Unassigning role with Name:", role);
+            await axios.put(
+                `${API_URL}/users/${userId}/unassign-role`,
+                { userId, roleName: role }, // Send roleName for unassigning
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
         }
 
-        try {
-            if (checked) {
-                // Assign role
-                await axios.put(
-                    `${API_URL}/users/${userId}/assign-role`,
-                    { userId, roleId },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-            } else {
-                // Unassign role
-                await axios.put(
-                    `${API_URL}/users/${userId}/unassign-role`,
-                    { userId, roleId },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-            }
-
-            // Update local state
-            setUsers((prevUsers) =>
-                prevUsers.map((user) =>
-                    user.id === userId
-                        ? {
-                              ...user,
-                              roles: checked
-                                  ? [...user.roles, role.role_name]
-                                  : user.roles.filter(
-                                        (r) => r !== role.role_name
-                                    ),
-                          }
-                        : user
-                )
-            );
-        } catch (error) {
-            console.error(
-                "Error updating role",
-                error.response?.data || error.message
-            );
-            setError(error.response?.data?.message || "Failed to update role.");
-        }
-    };
-
+        // Update local state after role change
+        setUsers((prevUsers) =>
+            prevUsers.map((user) =>
+                user.id === userId
+                    ? {
+                          ...user,
+                          roles: checked
+                              ? [...user.roles, roleId]
+                              : user.roles.filter((r) => r !== roleId),
+                      }
+                    : user
+            )
+        );
+    } catch (error) {
+        console.error(
+            "Error updating role:",
+            error.response?.data || error.message
+        );
+        setError(error.response?.data?.message || "Failed to update role.");
+    }
+};
 
 
 
@@ -184,50 +197,31 @@ export default function Users() {
                                                         Select Roles:
                                                     </Typography>
                                                     {roles.length > 0 ? (
-                                                        (console.log(
-                                                            "Roles Data",
-                                                            roles
-                                                        ),
-                                                        roles.map(
-                                                            (role, index) => (
-                                                                <div
-                                                                    key={`user-${
-                                                                        user.id
-                                                                    }-role-${
-                                                                        role.id ??
-                                                                        `index-${index}`
-                                                                    }`}
-                                                                >
-                                                                    <FormControlLabel
-                                                                        control={
-                                                                            <Checkbox
-                                                                                checked={user.roles.includes(
-                                                                                    role.role_name
-                                                                                )}
-                                                                                onChange={(
-                                                                                    e
-                                                                                ) =>
-                                                                                    handleRoleChange(
-                                                                                        user.id,
-                                                                                        role,
-                                                                                        e
-                                                                                            .target
-                                                                                            .checked
-                                                                                    )
-                                                                                }
-                                                                                name={`role-${
-                                                                                    role.id ??
-                                                                                    `index-${index}`
-                                                                                }`}
-                                                                                color="primary"
-                                                                            />
+                                                        roles.map((role) => (
+                                                            <FormControlLabel
+                                                                key={role}
+                                                                control={
+                                                                    <Checkbox
+                                                                        checked={user.roles.includes(
+                                                                            role
+                                                                        )}
+                                                                        onChange={(
+                                                                            e
+                                                                        ) =>
+                                                                            handleRoleChange(
+                                                                                user.id,
+                                                                                role,
+                                                                                e
+                                                                                    .target
+                                                                                    .checked
+                                                                            )
                                                                         }
-                                                                        label={
-                                                                            role.role_name
-                                                                        }
+                                                                        name={`role-${role}`}
+                                                                        color="primary"
                                                                     />
-                                                                </div>
-                                                            )
+                                                                }
+                                                                label={role}
+                                                            />
                                                         ))
                                                     ) : (
                                                         <Typography>
@@ -248,12 +242,7 @@ export default function Users() {
                                                 </Typography>
                                             )}
                                         </CardContent>
-                                        <div
-                                            style={{
-                                                padding: "10px",
-                                                textAlign: "right",
-                                            }}
-                                        >
+                                        <div style={{ textAlign: "right" }}>
                                             {editingUserId === user.id ? (
                                                 <IconButton
                                                     color="primary"
