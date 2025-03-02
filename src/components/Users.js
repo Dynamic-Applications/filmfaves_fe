@@ -16,6 +16,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import axios from "axios";
+import "./Sign-In-Up.css";
 
 const API_URL = process.env.REACT_APP_FILMFAVES_API || "http://localhost:4000";
 
@@ -81,19 +82,30 @@ export default function Users() {
     const handleRoleChange = async (userId, role, checked) => {
         const token = localStorage.getItem("token");
 
+        // Log the role for debugging purposes
+        console.log("Role object:", role);
+
+        // Check if role.id exists
+        const roleId = role.id || role.role_name; // Use role.id if available, otherwise fallback to role_name
+
+        if (!roleId) {
+            console.error("Role ID or Role Name is missing");
+            return;
+        }
+
         try {
             if (checked) {
                 // Assign role
                 await axios.put(
                     `${API_URL}/users/${userId}/assign-role`,
-                    { userId, roleId: role.id },
+                    { userId, roleId },
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
             } else {
-                // Ensure `roles` is always an array
+                // Unassign role
                 await axios.put(
-                    `${API_URL}/users/${userId}/remove-roles`,
-                    { userId, roles: [role.role_name] }, // Ensure this is an array
+                    `${API_URL}/users/${userId}/unassign-role`,
+                    { userId, roleId },
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
             }
@@ -124,6 +136,9 @@ export default function Users() {
 
 
 
+
+
+
     return (
         <Container maxWidth="md" style={{ marginTop: "20px" }}>
             <Typography variant="h4" gutterBottom align="center">
@@ -141,7 +156,7 @@ export default function Users() {
                     elevation={3}
                     style={{ padding: "20px", borderRadius: "10px" }}
                 >
-                    <Typography variant="h5" gutterBottom>
+                    <Typography variant="h5" gutterBottom align="left">
                         Users List
                     </Typography>
                     <List>
@@ -169,37 +184,50 @@ export default function Users() {
                                                         Select Roles:
                                                     </Typography>
                                                     {roles.length > 0 ? (
-                                                        roles.map((role) => (
-                                                            <div key={role.id}>
-                                                                <FormControlLabel
-                                                                    control={
-                                                                        <Checkbox
-                                                                            checked={user.roles.includes(
-                                                                                role.role_name
-                                                                            )}
-                                                                            onChange={(
-                                                                                e
-                                                                            ) =>
-                                                                                handleRoleChange(
-                                                                                    user.id,
-                                                                                    role,
+                                                        (console.log(
+                                                            "Roles Data",
+                                                            roles
+                                                        ),
+                                                        roles.map(
+                                                            (role, index) => (
+                                                                <div
+                                                                    key={`user-${
+                                                                        user.id
+                                                                    }-role-${
+                                                                        role.id ??
+                                                                        `index-${index}`
+                                                                    }`}
+                                                                >
+                                                                    <FormControlLabel
+                                                                        control={
+                                                                            <Checkbox
+                                                                                checked={user.roles.includes(
+                                                                                    role.role_name
+                                                                                )}
+                                                                                onChange={(
                                                                                     e
-                                                                                        .target
-                                                                                        .checked
-                                                                                )
-                                                                            }
-                                                                            name={
-                                                                                role.role_name ||
-                                                                                `role-${role.id}`
-                                                                            }
-                                                                            color="primary"
-                                                                        />
-                                                                    }
-                                                                    label={
-                                                                        role.role_name
-                                                                    }
-                                                                />
-                                                            </div>
+                                                                                ) =>
+                                                                                    handleRoleChange(
+                                                                                        user.id,
+                                                                                        role,
+                                                                                        e
+                                                                                            .target
+                                                                                            .checked
+                                                                                    )
+                                                                                }
+                                                                                name={`role-${
+                                                                                    role.id ??
+                                                                                    `index-${index}`
+                                                                                }`}
+                                                                                color="primary"
+                                                                            />
+                                                                        }
+                                                                        label={
+                                                                            role.role_name
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            )
                                                         ))
                                                     ) : (
                                                         <Typography>
