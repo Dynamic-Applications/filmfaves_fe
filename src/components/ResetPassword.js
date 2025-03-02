@@ -3,9 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button, CircularProgress } from "@mui/material";
 import "./Sign-In-Up.css";
 
-const API_URL =
-    process.env.REACT_APP_FILMFAVES_API ||
-    "https://filmfaves-s3sm.onrender.com";
+const API_URL = process.env.REACT_APP_FILMFAVES_API || "http://localhost:4000";
 
 export default function ResetPassword() {
     const { token } = useParams(); // Get the token from the URL params
