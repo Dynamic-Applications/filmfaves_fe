@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button, CircularProgress } from "@mui/material";
 import "./Sign-In-Up.css";
 
 const API_URL = process.env.REACT_APP_FILMFAVES_API;
+const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 1 minute
 
 export default function SignIn() {
     const [username, setUsername] = useState("");
@@ -11,6 +12,48 @@ export default function SignIn() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const inactivityTimer = useRef(null);
+
+    // Memoized logout function
+    const handleLogout = useCallback(() => {
+        console.log("Logging out due to inactivity...");
+        alert("Session expired due to inactivity. Please sign in again.");
+        localStorage.removeItem("token");
+        navigate("/signin");
+        window.location.reload();
+    }, [navigate]);
+
+    // Reset inactivity timer
+    const resetTimer = useCallback(() => {
+        console.log("Activity detected, resetting timer...");
+        if (inactivityTimer.current) {
+            clearTimeout(inactivityTimer.current);
+        }
+        inactivityTimer.current = setTimeout(() => {
+            console.log("Inactivity timeout reached!");
+            handleLogout();
+        }, INACTIVITY_TIMEOUT);
+    }, [handleLogout]);
+
+    useEffect(() => {
+        console.log("Setting up inactivity detection...");
+
+        // Detect user activity
+        window.addEventListener("mousemove", resetTimer);
+        window.addEventListener("keydown", resetTimer);
+
+        // Initialize timer on mount
+        resetTimer();
+
+        return () => {
+            console.log("Cleaning up event listeners...");
+            if (inactivityTimer.current) {
+                clearTimeout(inactivityTimer.current);
+            }
+            window.removeEventListener("mousemove", resetTimer);
+            window.removeEventListener("keydown", resetTimer);
+        };
+    }, [resetTimer]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -31,8 +74,8 @@ export default function SignIn() {
 
             localStorage.setItem("token", data.token);
             alert(data.message);
-            navigate("/movies"); // Navigate to movies after successful login
-            window.location.reload(); // Force reload to update user state
+            navigate("/movies");
+            window.location.reload();
         } catch (err) {
             setError(err.message);
         } finally {
