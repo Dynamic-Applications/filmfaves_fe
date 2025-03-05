@@ -229,8 +229,8 @@ const Navbar = () => {
                 <DialogTitle>Idle Timeout Warning</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        You will be signed out in 5 minutes. Would you like to
-                        stay signed in or log out?
+                        You will be signed out in 5 minutes. Stay signed in or
+                        log out?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions
