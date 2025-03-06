@@ -55,7 +55,7 @@ export default function Users() {
                 console.log("Roles Data", rolesData);
 
                 if (Array.isArray(rolesData)) {
-                    setRoles(rolesData); // Now rolesData should be an array of strings like ['admin', 'user', 'guest', 'superAdmin']
+                    setRoles(rolesData); // Ensure roles are stored properly
                 }
 
                 setUsers(
@@ -79,49 +79,56 @@ export default function Users() {
         fetchData();
     }, [navigate]);
 
+const roleIdMapping = {
+    Admin: 1,
+    User: 2,
+    Guest: 3,
+    "Super Admin": 4,
+};
+
 const handleRoleChange = async (userId, role, checked) => {
-    const token = localStorage.getItem("token");
+    console.log("Roles list at change time:", roles);
+    console.log("Role to assign/unassign:", role);
 
-    // Log the role object to ensure correct data structure
-    console.log("Role Object:", role);
-
-    let roleId;
-
-    // Check if the role is an object and contains the 'id' property
-    if (role && role.id) {
-        roleId = role.id; // Use the id directly if the role is an object
-    } else if (typeof role === "string") {
-        // If role is a string, find the role object from the available roles and get the id
-        const roleObj = roles.find((r) => r.role_name === role);
-        if (roleObj) {
-            roleId = roleObj.id;
-        } else {
-            console.error("Role not found in roles list:", role);
-            return; // Exit if roleName is not found in the roles list
-        }
+    if (!roles || roles.length === 0) {
+        console.error("Roles not loaded yet.");
+        return;
     }
 
-    // If roleId is still undefined or null, log an error and exit
+    if (!role) {
+        console.error("Role is undefined or null.");
+        return;
+    }
+
+    // Check if the role exists in the roles list (it's now a string array, so just check for role name directly)
+    if (!roles.includes(role)) {
+        console.error("Role not found in roles list.");
+        return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    const roleId = roleIdMapping[role];
     if (!roleId) {
-        console.error("Role ID is missing for role:", role);
+        console.error("Role ID not found for role:", role);
         return;
     }
 
     try {
         if (checked) {
             // Assign role
-            console.log("Assigning role with ID:", roleId);
+            console.log("Assigning role:", role);
             await axios.put(
                 `${API_URL}/users/${userId}/assign-role`,
-                { userId, roleId }, // Send roleId for assigning
+                { userId, roleId: roleId }, // Send userId and roleId
                 { headers: { Authorization: `Bearer ${token}` } }
             );
         } else {
             // Unassign role
-            console.log("Unassigning role with Name:", role);
+            console.log("Unassigning role:", role);
             await axios.put(
                 `${API_URL}/users/${userId}/unassign-role`,
-                { userId, roleName: role }, // Send roleName for unassigning
+                { userId, roleId: roleId }, // Send userId and roleId
                 { headers: { Authorization: `Bearer ${token}` } }
             );
         }
@@ -133,8 +140,8 @@ const handleRoleChange = async (userId, role, checked) => {
                     ? {
                           ...user,
                           roles: checked
-                              ? [...user.roles, roleId]
-                              : user.roles.filter((r) => r !== roleId),
+                              ? [...user.roles, role] // Add role name to list
+                              : user.roles.filter((r) => r !== role), // Remove role name from list
                       }
                     : user
             )
@@ -147,7 +154,6 @@ const handleRoleChange = async (userId, role, checked) => {
         setError(error.response?.data?.message || "Failed to update role.");
     }
 };
-
 
 
 
