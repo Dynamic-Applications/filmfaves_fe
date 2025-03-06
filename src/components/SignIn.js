@@ -11,7 +11,6 @@ export default function SignIn() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -97,5 +96,3 @@ export default function SignIn() {
         </div>
     );
 }
-
-
