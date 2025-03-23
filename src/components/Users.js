@@ -172,8 +172,31 @@ export default function Users() {
                                             <Typography variant="h6">
                                                 {user.username}
                                             </Typography>
+                                            <Typography
+                                                // color="primary"
+                                                color="textSecondary"
+                                            >
+                                                Email:{" "}
+                                                <Typography
+                                                    component="span"
+                                                    color="primary"
+                                                >
+                                                    {user.email}
+                                                </Typography>
+                                            </Typography>
                                             <Typography color="textSecondary">
-                                                {user.email}
+                                                Date Created:{" "}
+                                                {new Date(
+                                                    user.created_at
+                                                ).toLocaleString("en-US", {
+                                                    year: "numeric",
+                                                    month: "long",
+                                                    day: "numeric",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                    // second: "2-digit",
+                                                    hour12: true,
+                                                })}
                                             </Typography>
 
                                             {visibleRoles[user.id] ? (
