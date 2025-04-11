@@ -226,11 +226,10 @@ const Navbar = () => {
 
             {/* Idle timeout modal */}
             <Dialog open={openModal} onClose={handleStaySignedIn}>
-                <DialogTitle>Idle Timeout Warning</DialogTitle>
+                <DialogTitle>Timeout Warning</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        You will be signed out in 5 minutes. Stay signed in or
-                        log out?
+                        You will be signed out in 5 minutes.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions

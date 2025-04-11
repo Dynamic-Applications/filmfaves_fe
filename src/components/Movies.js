@@ -71,6 +71,12 @@ export default function Movies() {
     };
 
     const handleDelete = (id) => {
+        const confirmDelete = window.confirm(
+            "Are you sure you want to remove this movie? This action cannot be undone."
+        );
+
+        if (!confirmDelete) return;
+
         const token = localStorage.getItem("token");
 
         axios
